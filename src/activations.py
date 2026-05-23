@@ -68,9 +68,15 @@ class Softmax:
     """
     Softmax 출력층.
 
-    각 샘플의 로짓(logit)을 클래스별 확률로 바꿉니다.
+    각 샘플의 로짓(logit)을 클래스별 확률로 바꿉니다. -> logit: 신경망에서 소프트맥스 함수에 들어가기 직전의 정규화되지 않은 출력값 (= score)
     exp 계산 전에 행별 최댓값을 빼면 큰 숫자에서 overflow가 나는 것을 줄일 수 있습니다.
+
+    Affine 계층의 연산을 막 마친 직후의 수치 -> 로짓이 소프트맥스 계층을 거쳐 총합 1이 되는 확률 값으로 변환 
     """
+
+    def __init__(self):
+        # softmax의 출력
+        self.y = 0
 
     def forward(self, x):
         """
@@ -79,10 +85,42 @@ class Softmax:
 
         Returns:
             (batch_size, num_classes) 확률. 각 행의 합은 1입니다.
-        """
+        """ 
         # TODO: 수치 안정성을 위해 row별 max를 뺀 뒤 softmax 확률을 계산하세요.
         # 힌트: np.max(..., axis=1, keepdims=True), np.exp, np.sum을 사용합니다.
-        raise NotImplementedError("Softmax.forward를 구현하세요.")
+        # print("원본 Numpy 배열")
+        # print(x)
+        
+        row_max = np.max(x, axis=1, keepdims=True)
+        # print("row 별 max")
+        # print(row_max)
+
+        # print("x - max 값")
+        out = x - row_max
+        # print(out)
+
+        exp_x = np.exp(out)
+        # print("x - max 값으로 exp 연산")
+        # print(exp_x)
+
+        # 오버플로우 대책 
+        sum_exp_x = np.sum(exp_x, axis=1)
+        # print("exp 연산 값 총합")
+        # print(sum_exp_x)
+
+        # 확률 구할 때 사용할 요소가 속해있는 행렬의 행 구하기
+        # reshape(데이터 개수, 1): 데이터 개수 만큼의 행과 1개의 열로 이뤄진 2차원 배열 형태로 브로드캐스팅 
+        # sum_exp_x = sum_exp_x.reshape(sum_exp_x.size, 1)
+        # 차원 자리에 -1을 지정하면 원래 배열의 원소 개수에 맞게 넘파이가 자동으로 크기를 계산해 맞춰줌 
+        sum_exp_x = sum_exp_x.reshape(-1, 1)
+
+        # 확률, 각 요소의 값을 자신이 속한 행의 총합으로 나누기
+        self.y = exp_x / sum_exp_x
+        # print("확률")
+        # print(self.y)
+
+        return self.y
+        # raise NotImplementedError("Softmax.forward를 구현하세요.")
 
     def backward(self, dout):
         """
