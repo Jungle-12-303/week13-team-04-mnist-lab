@@ -23,6 +23,9 @@ class Affine:
         """가중치 W와 편향 b를 외부 params dict와 같은 배열 객체로 공유합니다."""
         self.W = W
         self.b = b
+        self.x = None
+        self.dW = None
+        self.db = None 
 
     def forward(self, x):
         """
@@ -33,7 +36,15 @@ class Affine:
             (batch_size, output_dim)
         """
         # TODO: backward에서 사용할 입력 x를 저장하고 x @ W + b를 반환하세요.
-        raise NotImplementedError("Affine.forward를 구현하세요.")
+        # x @ W + b -> @: 파이썬 행렬 곱셈(내적) 연산자 == np.dot(x, w) + b 
+        # 입력 x 저장
+        self.x = x
+
+        # x @ W + b 반환 
+        out = x @ self.W + self.b
+
+        return out
+        #raise NotImplementedError("Affine.forward를 구현하세요.")
 
     def backward(self, dout):
         """
@@ -47,8 +58,19 @@ class Affine:
             self.dW, self.db에 optimizer가 사용할 gradient를 저장합니다.
         """
         # TODO: self.dW, self.db, dx를 계산하세요.
-        # 힌트: dW = x.T @ dout, db = batch 방향 합, dx = dout @ W.T
-        raise NotImplementedError("Affine.backward를 구현하세요.")
+        # 힌트: dW = x.T @ dout, db = batch 방향 합, dx = dout @ W.T 
+        # 가중치 행렬(W)에 대한 최종 손실 함수(L)의 미분값(기울기)
+        self.dW = self.x.T @ dout
+
+        # 편향(b)에 대한 최종 손실 함수(L)의 미분값(기울기)
+        self.db = np.sum(dout, axis=0)
+
+        # 입력 데이터(x)에 대한 최종 손실 함수(L)의 미분값(기울기)
+        dx = dout @ self.W.T
+
+        return dx
+    
+        # raise NotImplementedError("Affine.backward를 구현하세요.")
 
 
 class BatchNorm:
