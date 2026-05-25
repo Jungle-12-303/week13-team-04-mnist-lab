@@ -11,6 +11,8 @@ import numpy as np
 
 
 class ReLU:
+    def __init__(self):
+        self.mask = None
     """
     ReLU(Rectified Linear Unit) 활성화 함수.
 
@@ -26,8 +28,14 @@ class ReLU:
         Returns:
             x와 같은 shape. x > 0인 위치만 원래 값을 유지합니다.
         """
-        # TODO: x > 0 위치를 self.mask에 저장하고, 음수/0 위치는 0으로 바꾸세요.
-        raise NotImplementedError("ReLU.forward를 구현하세요.")
+        # 구현 완료: ReLU는 0 이하를 꺼야 하므로, 먼저 꺼질 위치를 표시한다.
+        # 0 이하인 위치를 꺼둘 자리로 표시해 둔다.
+        self.mask = x <= 0
+        # 원본 x를 바로 바꾸지 않으려고 복사본을 만든다.
+        out = x.copy()
+        # mask가 True인 위치, 즉 0 이하였던 값은 ReLU 규칙대로 0으로 만든다.
+        out[self.mask] = 0
+        return out
 
     def backward(self, dout):
         """
@@ -37,9 +45,12 @@ class ReLU:
         Returns:
             ReLU 입력 x에 대한 gradient. forward 때 x <= 0이었던 위치는 0입니다.
         """
-        # TODO: forward에서 저장한 self.mask를 이용해 gradient가 흐를 위치만 남기세요.
-        raise NotImplementedError("ReLU.backward를 구현하세요.")
-
+        # 구현 완료: 순전파 때 꺼진 위치는 역전파 때도 그대로 막는다.
+        # forward 때 꺼졌던 위치는 backward에서도 gradient를 0으로 막는다.
+        dout[self.mask] = 0
+        # 남은 gradient를 앞 층으로 넘길 값으로 둔다.
+        dx = dout
+        return dx
 
 class Softmax:
     """
@@ -57,14 +68,20 @@ class Softmax:
         Returns:
             (batch_size, num_classes) 확률. 각 행의 합은 1입니다.
         """
-        # TODO: 수치 안정성을 위해 row별 max를 뺀 뒤 softmax 확률을 계산하세요.
-        # 힌트: np.max(..., axis=1, keepdims=True), np.exp, np.sum을 사용합니다.
-        raise NotImplementedError("Softmax.forward를 구현하세요.")
+        # 구현 완료: row별 max를 빼고 exp를 계산해서 큰 숫자로 터지는 상황을 줄인다.
+        # 각 데이터 줄에서 최댓값을 빼서 exp 계산이 터지지 않게 만든다.
+        shifted = x - np.max(x, axis=1, keepdims=True)
+        # softmax 공식의 exp 부분을 계산한다.
+        exp_x = np.exp(shifted)
+        # exp 값을 각 줄의 exp 합으로 나눠서 확률처럼 만든다.
+        out = exp_x / np.sum(exp_x, axis=1, keepdims=True)
+        return out
 
     def backward(self, dout):
         """
         Softmax와 Cross Entropy를 함께 미분한 gradient를 train()에서 직접 만들기 때문에
         여기서는 받은 gradient를 그대로 통과시킵니다.
         """
-        # TODO: train()에서 만든 gradient를 그대로 반환하세요.
-        raise NotImplementedError("Softmax.backward를 구현하세요.")
+        # 구현 완료: train()에서 만든 gradient를 그대로 반환한다.
+        # 이 과제에서는 softmax+loss gradient를 밖에서 만들기 때문에 그대로 넘긴다.
+        return dout
