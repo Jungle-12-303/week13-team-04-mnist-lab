@@ -248,9 +248,23 @@ class Dropout:
         """
         # TODO: train=True에서는 mask를 만들고 x에 곱하세요.
         # TODO: train=False에서는 x * (1 - drop_ratio)를 반환하세요.
-        raise NotImplementedError("Dropout.forward를 구현하세요.")
+        if train:
+            # x와 같은 모양의 랜덤 표를 만들고, drop_ratio를 넘은 위치만 살린다.
+            self.mask = np.random.rand(*x.shape) > self.drop_ratio
+
+            # True인 위치는 원래 값을 유지하고, False인 위치는 0으로 꺼진다.
+            return x*self.mask
+        
+        # 테스트 때는 랜덤으로 끄지 않고, 학습 때 살아남는 평균 비율만큼 줄인다.
+        return x * (1 - self.drop_ratio)
+    
+        # raise NotImplementedError("Dropout.forward를 구현하세요.")
 
     def backward(self, dout):
         """forward에서 꺼졌던 뉴런 위치에는 gradient도 흘리지 않습니다."""
         # TODO: forward에서 만든 mask를 dout에 곱하세요.
-        raise NotImplementedError("Dropout.backward를 구현하세요.")
+        # 구현 완료: forward 때 만든 mask를 dout에 곱해 꺼진 위치의 gradient를 막는다.
+        # forward 때 꺼진 위치는 backward에서도 gradient가 흐르지 않게 같은 mask를 곱한다.
+        return dout * self.mask
+    
+        # raise NotImplementedError("Dropout.backward를 구현하세요.")
