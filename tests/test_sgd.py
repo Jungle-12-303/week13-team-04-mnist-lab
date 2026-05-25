@@ -3,6 +3,8 @@
 
 import numpy as np
 
+import os,sys
+sys.path.append(os.path.dirname(__file__) + "/../src/")
 from optimizers import SGD
 
 
@@ -18,3 +20,7 @@ class TestSGD:
         np.testing.assert_array_almost_equal(
             params["W"], np.array([[0.9, 1.9], [2.9, 3.9]])
         )
+
+if __name__ == "__main__":
+    a = TestSGD()
+    a.test_sgd_update_changes_params()

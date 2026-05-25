@@ -7,7 +7,8 @@
 """
 
 import numpy as np
-
+import os,sys
+sys.path.append(os.path.dirname(__file__) + "/../src/")
 from activations import ReLU
 
 

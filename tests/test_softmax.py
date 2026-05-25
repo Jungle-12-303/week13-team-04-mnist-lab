@@ -2,7 +2,8 @@
 """Softmax 단계 테스트."""
 
 import numpy as np
-
+import os,sys
+sys.path.append(os.path.dirname(__file__) + "/../src/")
 from activations import Softmax
 
 
@@ -31,3 +32,9 @@ class TestSoftmax:
         dout = np.random.randn(3, 5)
         dx = softmax.backward(dout)
         assert dx.shape == dout.shape
+
+if __name__ == "__main__":
+    a = TestSoftmax()
+    a.test_softmax_forward_sum_one()
+    a.test_softmax_backward_shape()
+    a.test_softmax_forward_non_negative()

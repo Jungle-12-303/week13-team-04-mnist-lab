@@ -3,6 +3,8 @@
 
 import numpy as np
 
+import os,sys
+sys.path.append(os.path.dirname(__file__) + "/../src/")
 from losses import cross_entropy_loss
 
 
@@ -23,3 +25,8 @@ class TestCrossEntropyLoss:
         y_true = np.array([2, 0])
         loss = cross_entropy_loss(y_pred, y_true)
         assert loss < 0.01
+
+if __name__ == "__main__":
+    a = TestCrossEntropyLoss()
+    a.test_cross_entropy_loss_perfect()
+    a.test_cross_entropy_loss_scalar()
