@@ -88,25 +88,14 @@ class Softmax:
         """ 
         # TODO: 수치 안정성을 위해 row별 max를 뺀 뒤 softmax 확률을 계산하세요.
         # 힌트: np.max(..., axis=1, keepdims=True), np.exp, np.sum을 사용합니다.
-        # print("원본 Numpy 배열")
-        # print(x)
-        
         row_max = np.max(x, axis=1, keepdims=True)
-        # print("row 별 max")
-        # print(row_max)
 
-        # print("x - max 값")
         out = x - row_max
-        # print(out)
 
         exp_x = np.exp(out)
-        # print("x - max 값으로 exp 연산")
-        # print(exp_x)
 
         # 오버플로우 대책 
         sum_exp_x = np.sum(exp_x, axis=1)
-        # print("exp 연산 값 총합")
-        # print(sum_exp_x)
 
         # 확률 구할 때 사용할 요소가 속해있는 행렬의 행 구하기
         # reshape(데이터 개수, 1): 데이터 개수 만큼의 행과 1개의 열로 이뤄진 2차원 배열 형태로 브로드캐스팅 
@@ -128,7 +117,6 @@ class Softmax:
         여기서는 받은 gradient를 그대로 통과시킵니다.
         """
         # TODO: train()에서 만든 gradient를 그대로 반환하세요.
-
         return dout
     
         # raise NotImplementedError("Softmax.backward를 구현하세요.")
