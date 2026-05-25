@@ -20,6 +20,9 @@ build/
 venv/
 env/
 
+# IDE
+.idea/
+
 # pytest
 .pytest_cache/
 .coverage
