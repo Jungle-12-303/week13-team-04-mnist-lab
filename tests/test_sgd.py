@@ -20,7 +20,3 @@ class TestSGD:
         np.testing.assert_array_almost_equal(
             params["W"], np.array([[0.9, 1.9], [2.9, 3.9]])
         )
-
-if __name__ == "__main__":
-    a = TestSGD()
-    a.test_sgd_update_changes_params()

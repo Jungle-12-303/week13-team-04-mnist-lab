@@ -7,20 +7,84 @@ import numpy as np
 from losses import cross_entropy_loss
 
 
+# def train(model, optimizer, x_train, y_train, epochs=20, batch_size=128):
+#     """
+#     미니배치 학습 루프.
+
+#     한 배치마다 Forward -> Loss -> Backward -> Optimizer 업데이트 순서로 진행합니다.
+#     교육생은 이 함수에서 "예측값을 만들고, 손실을 계산하고, gradient로 파라미터를 바꾸는"
+#     전체 흐름을 확인할 수 있습니다.
+
+#     Returns:
+#         loss_history: epoch별 평균 손실 리스트
+#     """
+#     # TODO: epoch마다 데이터를 섞고, batch 단위로 forward/loss/backward/update를 수행하세요.
+#     # 힌트: Softmax + CrossEntropy 결합 gradient는 y_pred copy에서 정답 위치에 1을 빼서 만듭니다.
+#     learning_rate = 0.1
+#     train_size = x_train.shape[0]
+#     iters_nums = epochs *  (train_size // batch_size)
+
+#     train_loss_list = []
+#     train_acc_list = []
+#     test_acc_list = []
+#     for e in range(epochs):
+#         epoch_loss = []
+#         for i in range(batch_size):
+#             batch_mask = np.random.choice(train_size, batch_size)
+#             x_batch = x_train[batch_mask]
+#             y_batch = y_train[batch_mask]
+#             loss = model.loss(x_batch, y_batch)
+#             y_encode = np.zeros_like(model.y_pred)
+#             y_encode[y_batch] = 1
+#             dout = 1
+#             dout = (model.y_pred - y_encode)
+#             model.backward(dout)
+#             for key in ["W1","b1","W2","b2","W3","b3"]:
+#                 model.params[key] -= learning_rate * model.grads[key]
+#             model.set_wb()
+#             train_loss_list.append(loss)
+#     return train_loss_list
+#     raise NotImplementedError("train을 구현하세요.")
+
 def train(model, optimizer, x_train, y_train, epochs=20, batch_size=128):
-    """
-    미니배치 학습 루프.
+    train_size = x_train.shape[0]
+    loss_history = []
 
-    한 배치마다 Forward -> Loss -> Backward -> Optimizer 업데이트 순서로 진행합니다.
-    교육생은 이 함수에서 "예측값을 만들고, 손실을 계산하고, gradient로 파라미터를 바꾸는"
-    전체 흐름을 확인할 수 있습니다.
+    for epoch in range(epochs):
+        epoch_losses = []
 
-    Returns:
-        loss_history: epoch별 평균 손실 리스트
-    """
-    # TODO: epoch마다 데이터를 섞고, batch 단위로 forward/loss/backward/update를 수행하세요.
-    # 힌트: Softmax + CrossEntropy 결합 gradient는 y_pred copy에서 정답 위치에 1을 빼서 만듭니다.
-    raise NotImplementedError("train을 구현하세요.")
+        # epoch마다 데이터 섞기
+        indices = np.random.permutation(train_size)
+
+        for start in range(0, train_size, batch_size):
+            batch_indices = indices[start:start + batch_size]
+            x_batch = x_train[batch_indices]
+            y_batch = y_train[batch_indices]
+
+            # Forward + Loss
+            loss = model.loss(x_batch, y_batch)
+
+            # Softmax + CrossEntropy gradient
+            y_onehot = np.zeros_like(model.y_pred)
+            y_onehot[np.arange(x_batch.shape[0]), y_batch] = 1
+
+            dout = (model.y_pred - y_onehot) / x_batch.shape[0]
+
+            # Backward
+            model.backward(dout)
+
+            # Update
+            optimizer.update(model.params, model.grads)
+
+            # 현재 network.py 구조에서는 params와 layer W,b가 끊길 수 있어서 필요
+            if hasattr(model, "set_wb"):
+                model.set_wb()
+
+            epoch_losses.append(loss)
+
+        loss_history.append(np.mean(epoch_losses))
+
+    return loss_history
 
 
 def evaluate(model, x, y):

@@ -4,6 +4,8 @@
 import numpy as np
 import pytest
 
+import os,sys
+sys.path.append(os.path.dirname(__file__) + "/../src/")
 from network import NeuralNetwork
 from optimizers import Adam
 from training import train
@@ -32,3 +34,4 @@ class TestTrain:
         assert isinstance(history, list)
         assert len(history) == 1
         assert history[0] >= 0
+

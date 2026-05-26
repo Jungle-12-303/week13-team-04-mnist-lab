@@ -9,7 +9,7 @@
 """
 
 import numpy as np
-
+from collections import OrderedDict
 
 class Affine:
     """
@@ -83,6 +83,10 @@ class BatchNorm:
         self.running_mean = np.zeros_like(beta)
         self.running_var = np.zeros_like(beta)
         self.eps = 1e-7
+        self.arg = None
+
+    def get_mean(self,x):
+        return np.mean(x, axis=0)
 
     def forward(self, x, train=True):
         """
@@ -95,6 +99,25 @@ class BatchNorm:
         """
         # TODO: train=True에서는 batch mean/var로 정규화하고 running 통계를 갱신하세요.
         # TODO: train=False에서는 running_mean/running_var를 사용하세요.
+        if train == True:
+            self.arg = OrderedDict()
+            self.arg["x"] = x
+            self.arg["mu"] = self.get_mean(x)
+            self.arg["mu1"] = x - self.arg["mu"]
+            self.arg["mu2"] = (self.arg["mu1"]) ** 2
+            self.arg["sigma"] = self.get_mean(self.arg["mu2"])
+            self.arg["sigma1"] = np.sqrt(self.arg["sigma"] + self.eps)
+            self.arg["sigma2"] = 1 / self.arg["sigma1"]
+            self.arg["x_hat"] = self.arg["sigma2"] * self.arg["mu1"]
+            self.arg["gamma"] = self.gamma * self.arg["x_hat"]
+            out = self.beta + self.arg["gamma"]
+            self.running_mean = self.momentum * self.running_mean + (1 - self.momentum) * self.arg["mu"]
+            self.running_var = self.momentum * self.running_var + (1 - self.momentum) * self.arg["sigma"]
+            return out
+        else:
+            x_hat = (x - self.running_mean) / (self.running_var + self.eps)
+            out = x_hat * self.gamma + self.beta
+            return out
         raise NotImplementedError("BatchNorm.forward를 구현하세요.")
 
     def backward(self, dout):
@@ -109,6 +132,20 @@ class BatchNorm:
         """
         # TODO: self.dbeta, self.dgamma, dx를 계산하세요.
         # 힌트: 먼저 dbeta와 dgamma shape가 beta/gamma와 같은지 확인합니다.
+        batch_size = self.arg["x"].shape[0]
+        dbeta = np.sum(dout,axis = 0)
+        dgamma = np.sum(dout * self.arg["x_hat"], axis = 0)
+        dy2 = self.gamma * dout * self.arg["sigma2"]
+        dx7 = self.gamma * dout * self.arg["mu1"]
+        dx6 = dx7 / (self.arg["sigma1"]) ** 2
+        dx5 = dx6 / self.arg["sigma1"] / 2
+        dx4 = dx5 / batch_size
+        dx3 = 2 * self.arg["mu1"] * dx4
+        dy1 = dx3
+        dx2 = -dx3
+        dx1 = dx2 / batch_size
+        out = dx1 + dy1
+        return out
         raise NotImplementedError("BatchNorm.backward를 구현하세요.")
 
 
@@ -132,9 +169,17 @@ class Dropout:
         """
         # TODO: train=True에서는 mask를 만들고 x에 곱하세요.
         # TODO: train=False에서는 x * (1 - drop_ratio)를 반환하세요.
+        if train == True:
+            self.mask = np.arange(x.size).reshape(x.shape)
+            np.random.shuffle(self.mask)
+            self.mask = self.mask < x.size // 2
+            return x * self.mask
+        else:
+            return x * (1-self.drop_ratio)
         raise NotImplementedError("Dropout.forward를 구현하세요.")
 
     def backward(self, dout):
         """forward에서 꺼졌던 뉴런 위치에는 gradient도 흘리지 않습니다."""
         # TODO: forward에서 만든 mask를 dout에 곱하세요.
+        return dout * self.mask
         raise NotImplementedError("Dropout.backward를 구현하세요.")

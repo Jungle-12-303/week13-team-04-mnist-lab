@@ -33,8 +33,3 @@ class TestAffine:
         assert dx.shape == x.shape
         assert aff.dW.shape == W.shape
         assert aff.db.shape == b.shape
-
-if __name__ == "__main__":
-    a = TestAffine()
-    a.test_affine_forward_shape()
-    a.test_affine_backward_grad_shape()

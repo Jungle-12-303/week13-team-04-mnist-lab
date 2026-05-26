@@ -30,7 +30,6 @@ class ReLU:
             x와 같은 shape. x > 0인 위치만 원래 값을 유지합니다.
         """
         # TODO: x > 0 위치를 self.mask에 저장하고, 음수/0 위치는 0으로 바꾸세요.
-        print(x)
         self.mask = x > 0
         x[~self.mask] = 0
         return x
@@ -59,7 +58,7 @@ class Softmax:
     exp 계산 전에 행별 최댓값을 빼면 큰 숫자에서 overflow가 나는 것을 줄일 수 있습니다.
     """
     def __init__(self):
-        1
+        self.x = None
 
     def forward(self, x):
         """
@@ -72,6 +71,7 @@ class Softmax:
         # TODO: 수치 안정성을 위해 row별 max를 뺀 뒤 softmax 확률을 계산하세요.
         # 힌트: np.max(..., axis=1, keepdims=True), np.exp, np.sum을 사용합니다.
         
+        self.x = x
         max_value = np.max(x,axis = 1, keepdims=True)
         out = np.exp(x - max_value) / np.sum(np.exp(x - max_value),axis=1).reshape(-1,1)
         return out
